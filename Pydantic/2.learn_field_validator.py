@@ -34,3 +34,10 @@ class Person(BaseModel):
         if domain not in allowed_domains:
             raise ValueError(f'Email domain must be one of: {allowed_domains}')
         return v
+    
+    @field_validator('name',mode="before")
+    @classmethod
+    def validate_name_before(cls, v: str) -> str:
+        if not v:
+            raise ValueError('Name must not be empty')
+        return v
