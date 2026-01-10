@@ -28,9 +28,9 @@ async def register(user: Register):
     existing_user = await database.fetch_one(query)
     if existing_user:
         raise HTTPException(status_code=400, detail="Username Already Exists")
-    
+    hashed_password = password_context.hash(user.password)
     query = users.insert().values(username=user.username,
-                                  age=user.age, password=user.password)
+                                age=user.age, password=hashed_password)
     await database.execute(query)
     return {"message": "User registered successfully!"}
 
@@ -41,7 +41,8 @@ async def login(user: Login):
     if not existing_user:
         raise HTTPException(status_code=400, detail="Invalid Username or Password")
     
-    if existing_user.password != user.password:
+    is_valid = password_context.verify(user.password, existing_user.password)
+    if not is_valid:
         raise HTTPException(status_code=400, detail="Invalid Username or Password")
     
     return {"message": "Login successful!"}
