@@ -1,0 +1,22 @@
+<html>
+
+<head>
+    <title>Form Handling Example</title>
+
+    <body>
+        <h1>{{name}}</h1>
+        <br>
+        {% block body %}
+    <form action="/submit/" enctype="multipart/form-data" method="post">
+    <label for="username">Username:</label>
+    <input type="text" id="username" name="username">
+    <label for="email">Email:</label>
+    <input type="email" id="email" name="email">
+    <input type="file" name="file" accept="image/*" id="file" required>
+    <button type="submit">Submit</button>
+
+</form>
+        {% endblock %}
+
+    </body>
+</html>

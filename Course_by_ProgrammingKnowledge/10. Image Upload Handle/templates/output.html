@@ -1,0 +1,10 @@
+{% extends "index.html" %}
+
+{% block body %}
+    <h2>Form Submitted Successfully!</h2>
+    <p>Username: {{ username }}</p>
+    <p>Email: {{ email }}</p>
+    <p>Uploaded Image:</p>
+    <img src="{{ image_path }}" alt="Uploaded Image" style="max-width:300px;">
+    
+{% endblock %}
