@@ -1,9 +1,13 @@
-from sqlalchemy import create_engine, MetaData
-from databases import Database
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker, DeclarativeBase
 
 
-DATABASE_URL=f"sqlite:///./users.db"
+class Base(DeclarativeBase):
+    pass
 
-database=Database(DATABASE_URL)
-metadata=MetaData()
-engine=create_engine(DATABASE_URL)
+
+DATABASE_URL = f"sqlite:///./users.db"
+
+engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+
+SessionLocal = sessionmaker(autoflush=False, bind=engine)

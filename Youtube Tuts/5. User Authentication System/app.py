@@ -1,48 +1,52 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException
+from sqlalchemy.orm import Session
+from sqlalchemy import select
 from passlib.context import CryptContext
-from contextlib import asynccontextmanager
-from db import database, engine, metadata
-from models import users
+from db import engine, SessionLocal, Base
+from models import User
 from schema import Register, Login
-
-metadata.create_all(engine)
 
 password_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    # Startup: code before yield runs on startup
-    await database.connect()
-    yield
-    # Shutdown: code after yield runs on shutdown
-    await database.disconnect()
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
 
-app = FastAPI(lifespan=lifespan)
+Base.metadata.create_all(bind=engine)
+
+app = FastAPI()
 
 
 @app.post("/register")
-async def register(user: Register):
-    query = users.select().where(users.c.username == user.username)
-    existing_user = await database.fetch_one(query)
+async def register(user: Register, db: Session = Depends(get_db)):
+    query = select(User).where(User.username == user.username)
+    existing_user = db.execute(query).first()
     if existing_user:
         raise HTTPException(status_code=400, detail="Username Already Exists")
     hashed_password = password_context.hash(user.password)
-    query = users.insert().values(username=user.username,
-                                age=user.age, password=hashed_password)
-    await database.execute(query)
+    user=User(username=user.username,age=user.age,password=hashed_password)
+    db.add(user)
+    db.commit()
+    db.refresh(user)
     return {"message": "User registered successfully!"}
 
+
 @app.post("/login")
-async def login(user: Login):
-    query = users.select().where(users.c.username == user.username)
-    existing_user = await database.fetch_one(query)
+async def login(user: Login, db: Session = Depends(get_db)):
+    query = select(User).where(User.username == user.username)
+    existing_user = db.execute(query).first()
     if not existing_user:
-        raise HTTPException(status_code=400, detail="Invalid Username or Password")
-    
+        raise HTTPException(
+            status_code=400, detail="Invalid Username or Password")
+
     is_valid = password_context.verify(user.password, existing_user.password)
     if not is_valid:
-        raise HTTPException(status_code=400, detail="Invalid Username or Password")
-    
+        raise HTTPException(
+            status_code=400, detail="Invalid Username or Password")
+
     return {"message": "Login successful!"}

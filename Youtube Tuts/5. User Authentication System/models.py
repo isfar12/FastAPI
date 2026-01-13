@@ -1,11 +1,13 @@
-from sqlalchemy import create_engine, Table, Column, Integer, String
-from db import metadata
+from sqlalchemy import String
+from sqlalchemy.orm import Mapped, mapped_column
+from db import Base
 
-users = Table(
-    "users",
-    metadata,
-    Column("id", Integer, primary_key=True),
-    Column("username", String(50), unique=True, nullable=False, index=True),
-    Column("age", Integer, nullable=False),
-    Column("password", String(), nullable=False)
-)
+
+class User(Base):
+    __tablename__ = "users"
+
+    id: Mapped[int] = mapped_column(primary_key=True, index=True)
+    username: Mapped[str] = mapped_column(
+        String(50), unique=True, nullable=False, index=True)
+    age: Mapped[int] = mapped_column(nullable=False)
+    password: Mapped[str] = mapped_column(nullable=False)
