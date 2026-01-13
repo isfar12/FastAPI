@@ -29,7 +29,7 @@ async def register(user: Register, db: Session = Depends(get_db)):
     if existing_user:
         raise HTTPException(status_code=400, detail="Username Already Exists")
     hashed_password = password_context.hash(user.password)
-    user=User(username=user.username,age=user.age,password=hashed_password)
+    user = User(username=user.username, age=user.age, password=hashed_password)
     db.add(user)
     db.commit()
     db.refresh(user)
@@ -39,14 +39,16 @@ async def register(user: Register, db: Session = Depends(get_db)):
 @app.post("/login")
 async def login(user: Login, db: Session = Depends(get_db)):
     query = select(User).where(User.username == user.username)
+    # returns the list of matched user objects
     existing_user = db.execute(query).first()
     if not existing_user:
         raise HTTPException(
             status_code=400, detail="Invalid Username or Password")
 
-    is_valid = password_context.verify(user.password, existing_user.password)
+    is_valid = password_context.verify(
+        user.password, existing_user[0].password)
     if not is_valid:
         raise HTTPException(
             status_code=400, detail="Invalid Username or Password")
 
-    return {"message": "Login successful!"}
+    return {"message": "Login successful!", "username": existing_user[0].username}
