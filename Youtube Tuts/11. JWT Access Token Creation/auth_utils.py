@@ -31,6 +31,7 @@ def create_refresh_token(data: dict, expires_delta: timedelta | None = None):
     to_encode = data.copy()
     expire = datetime.now(timezone.utc) + (timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS)
                                            if expires_delta is None else expires_delta)
+    #  expire = current time + default expire time if custom expire time not mentiod else the custom expire tim
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
